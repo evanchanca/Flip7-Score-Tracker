@@ -540,8 +540,8 @@
         </div>
     </div>
 
+
     <script>
-        // Game State
         let gameState = {
             players: [],
             currentRound: 1,
@@ -551,7 +551,6 @@
 
         const WINNING_SCORE = 200;
 
-        // DOM Elements
         const setupScreen = document.getElementById('setupScreen');
         const scoringScreen = document.getElementById('scoringScreen');
         const winnerScreen = document.getElementById('winnerScreen');
@@ -567,7 +566,6 @@
         const winnerName = document.getElementById('winnerName');
         const winnerScore = document.getElementById('winnerScore');
 
-        // Setup Event Listeners
         playerCountSelect.addEventListener('change', (e) => {
             const count = parseInt(e.target.value);
             generatePlayerInputs(count);
@@ -582,7 +580,6 @@
         resetRoundBtn.addEventListener('click', resetRound);
         restartBtn.addEventListener('click', restartGame);
 
-        // Generate Player Input Fields
         function generatePlayerInputs(count) {
             playerInputs.innerHTML = '';
             for (let i = 1; i <= count; i++) {
@@ -600,7 +597,6 @@
             }
         }
 
-        // Initialize Game
         function initializeGame() {
             const inputs = document.querySelectorAll('.player-name-input');
             gameState.players = [];
@@ -625,7 +621,6 @@
             renderRoundInputs();
         }
 
-        // Render Round Inputs
         function renderRoundInputs() {
             roundScoresContainer.innerHTML = '';
             gameState.players.forEach(player => {
@@ -648,13 +643,12 @@
                             data-player="${player}"
                             style="margin-right: 4px;"
                         />
-                        Bust (Score of 0 for this round)
+                        Bust
                     </label>
                 `;
                 roundScoresContainer.appendChild(div);
             });
 
-            // Add event listeners for bust checkboxes
             document.querySelectorAll('.bust-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', (e) => {
                     const player = e.target.dataset.player;
@@ -673,10 +667,8 @@
             updateLeaderboard();
         }
 
-        // Submit Round
         function submitRound() {
             const inputs = document.querySelectorAll('.score-input');
-            let allValid = true;
 
             inputs.forEach(input => {
                 const player = input.dataset.player;
@@ -684,24 +676,35 @@
                 gameState.scores[player] += score;
             });
 
-            // Check for winner
-            const winner = gameState.players.find(p => gameState.scores[p] >= WINNING_SCORE);
+            // Check if any player reached 200+
+            const playersAt200 = gameState.players.filter(p => gameState.scores[p] >= WINNING_SCORE);
 
-            if (winner) {
-                gameState.gameOver = true;
-                showWinner(winner);
+            if (playersAt200.length > 0) {
+                // Find the maximum score among all players
+                const maxScore = Math.max(...gameState.players.map(p => gameState.scores[p]));
+                
+                // Find all players with the maximum score
+                const leadingPlayers = gameState.players.filter(p => gameState.scores[p] === maxScore);
+                
+                // Only end game if ONE player has the highest score AND it's >= 200
+                if (leadingPlayers.length === 1 && maxScore >= WINNING_SCORE) {
+                    gameState.gameOver = true;
+                    showWinner(leadingPlayers[0]);
+                } else {
+                    // Multiple players tied at top, or top score < 200, continue playing
+                    gameState.currentRound++;
+                    renderRoundInputs();
+                }
             } else {
                 gameState.currentRound++;
                 renderRoundInputs();
             }
         }
 
-        // Reset Round
         function resetRound() {
             renderRoundInputs();
         }
 
-        // Update Leaderboard
         function updateLeaderboard() {
             leaderboard.innerHTML = '';
 
@@ -730,7 +733,6 @@
             });
         }
 
-        // Show Winner
         function showWinner(player) {
             winnerName.textContent = `🎉 ${player} Wins!`;
             winnerScore.textContent = `Final Score: ${gameState.scores[player]} Points`;
@@ -738,7 +740,6 @@
             showScreen('winner');
         }
 
-        // Update Winner Leaderboard
         function updateWinnerLeaderboard() {
             const winnerLeaderboard = document.getElementById('winnerLeaderboard');
             winnerLeaderboard.innerHTML = '';
@@ -771,7 +772,6 @@
             });
         }
 
-        // Restart Game
         function restartGame() {
             gameState = {
                 players: [],
@@ -784,7 +784,6 @@
             showScreen('setup');
         }
 
-        // Show Screen
         function showScreen(screenName) {
             setupScreen.classList.remove('active');
             scoringScreen.classList.remove('active');
